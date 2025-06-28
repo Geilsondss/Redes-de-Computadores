@@ -36,55 +36,6 @@ comandos = {
 
 mostrar_comandos()
 
-def entrar_na_sala(e: str):
-    partes = e.split()
-    if len(partes) < 2:
-        print("<SISTEMA>: Uso correto: /enter_room <nome> [senha]")
-        return
-
-    nome = partes[1]
-    senha = partes[2] if len(partes) > 2 else ""
-    sala = salasdb.salas.get(nome)
-
-    if not sala:
-        print("<SISTEMA>: Sala não encontrada.")
-        return
-
-    if not sala.verificar_senha(senha):
-        print("<SISTEMA>: Senha incorreta.")
-        return
-
-    try:
-        # Encerra todas conexões 1:1 antes de entrar na sala
-        for peer in list(peersdb.peers):
-            if peer != f"{sala.ip}":
-                cliente.disconnect(peer)
-                
-        cliente.connect(socket_to_tuple(f"{sala.ip}:{sala.porta}"), obter_hostname(sala.porta))
-        if str(usuario) not in sala.membros:
-            sala.membros.append(str(usuario))
-        salasdb.usuarios_sala[str(usuario)] = nome
-        print(f"<SISTEMA>: Você entrou na sala {nome}.")
-    except Exception as err:
-        print(f"<SISTEMA>: Erro ao conectar-se à sala: {err}")
-
-def expulsar_usuario(e: str):
-    partes = e.split()
-    if len(partes) < 3:
-        print("<SISTEMA>: Uso correto: /kick_peer <usuario> <sala>")
-        return
-
-    usuario_expulso = partes[1]
-    nome_sala = partes[2]
-
-    sala = salasdb.salas.get(nome_sala)
-    if not sala:
-        print("<SISTEMA>: Sala não encontrada.")
-        return
-
-    resultado = sala.expulsar(str(usuario), usuario_expulso)
-    print(resultado)
-
 if __name__ == '__main__':
     while True:
         e = input()
@@ -104,4 +55,3 @@ if __name__ == '__main__':
                 msg = f'<{usuario}>: {e}'
             cliente.send_msg(msg)
             logger.log(msg)
-#192.168.56.1:500#
