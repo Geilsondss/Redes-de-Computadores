@@ -59,29 +59,35 @@ class Server:
             self.finish()
 
     def handle_peer(self, conn: socket, addr: tuple):
-        """
-        Gerencia a comunicação com um peer conectado.
-        """
         try:
             while True:
                 data = conn.recv(4096)
-                if not data or data.strip() == '':
+                if not data or data.strip() == b'':
                     break
-
-                # Exibe e registra a mensagem recebida
                 msg = data.decode('utf-8')
                 if msg == "__DISCONNECT__":
                     print(f"<SISTEMA>: O peer {addr} encerrou a conexão.")
+                    ppe = str(peersdb.peers)
+                    ppe = ppe[2:19]
+                    cliente.disconnect(ppe.split()[0])
                     break
-
-                print(f'{msg}')
-                logger.log(msg)
+                elif msg == "__KICK__":
+                    print(f"<SISTEMA>: Você foi removido da sala pelo criador.")
+                    ppe = str(peersdb.peers)
+                    ppe = ppe[2:19]
+                    cliente.disconnect(ppe.split()[0])
+                    break
+                elif msg == "__ADDED_TO_ROOM__":
+                    print(f"<SISTEMA>: Você foi adicionado à sala pelo criador.")
+                else:
+                    print(f'{msg}')
+                    logger.log(msg)
         except Exception as e:
-            print(f'<SISTEMA>: Erro ao tratar conexão com {addr}: {e}')
+            print('')
         finally:
             conn.close()
             peersdb.remove(tuple_to_socket(addr))
-
+            
     def finish(self):
         """
         Finaliza o servidor, fechando todas as conexões e threads.
