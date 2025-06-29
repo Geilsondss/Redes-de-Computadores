@@ -41,25 +41,7 @@ class Connections:
         """
         with self.__lock:
             if peer in self.connections: self.connections.remove(peer)
-
-'''
-def disconnect(self, addr_str: str):
-    """
-    Encerra a conexão com um peer específico baseado em IP:PORTA.
-    """
-    addr = socket_to_tuple(addr_str)
-    for conn in list(self.__connections.connections):
-        try:
-            if conn.getpeername() == addr:
-                conn.close()
-                self.__connections.remove(conn)
-                peersdb.remove(addr_str)
-                print(f"<SISTEMA>: Conexão encerrada com {addr_str}")
-                return
-        except:
-            continue
-    print(f"<SISTEMA>: Conexão com {addr_str} não encontrada.")'''
-    
+            
 
 class Client:
     """
@@ -146,5 +128,17 @@ class Client:
             except Exception as e:
                 print(f"<SISTEMA>: Erro ao encerrar conexão com {addr_str}: {e}")
         print(f"<SISTEMA>: Conexão com {addr_str} não encontrada.")
+        
+    def send_control_message(self, addr_str: str, msg: str):
+            """
+            Envia uma mensagem de controle (como __KICK__) para um peer específico.
+            """
+            addr = socket_to_tuple(addr_str)
+            for conn in list(self.__connections.connections):
+                try:
+                    if conn.getpeername() == addr:
+                        conn.sendall(msg.encode('utf-8'))
+                        return
+                except: continue
         
 cliente = Client()
