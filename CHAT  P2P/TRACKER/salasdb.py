@@ -85,6 +85,18 @@ class SalasDB:
     # Retorna uma lista com os nomes de todas as salas existentes
     def listar_salas(self) -> list[str]:
         return list(self.salas.keys())
+    
+    def deletar_sala(self, nome: str, solicitante: str) -> str:
+        if nome not in self.salas:
+            return "<SISTEMA>: Sala não existe."
+        sala = self.salas[nome]
+        if sala.criador != solicitante:
+            return "<SISTEMA>: Apenas o criador pode deletar a sala."
+        for membro in sala.membros:
+            if membro in self.usuarios_sala:
+                del self.usuarios_sala[membro]
+        del self.salas[nome]
+        return f"<SISTEMA>: Sala '{nome}' foi deletada com sucesso."
 
 
 # Comando para um usuário tentar entrar em uma sala existente
