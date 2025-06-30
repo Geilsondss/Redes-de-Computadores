@@ -2,7 +2,7 @@ import json
 import os
 import hashlib
 import platform
-from utils import *
+from utils import * # type: ignore
 
 
 def criptografar(senha: str) -> str:

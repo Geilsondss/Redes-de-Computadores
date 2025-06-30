@@ -1,8 +1,8 @@
 from server import *
 from client import *
-from utils import obter_hostname, clear, socket_to_tuple, mostrar_comandos
+from utils import obter_hostname, clear, socket_to_tuple, mostrar_comandos, criptografar
 from peersdb import peersdb
-from TRACKER.salasdb import *
+from TRACKER.salasinfo.salasdb import *
 from TRACKER.userinfo.userinfo import User, UserException
 from TRACKER.logs.logger import logger
 
@@ -25,7 +25,6 @@ comandos = {
             senha=e.split()[3],
             criador=str(usuario))
     ),
-    '/enter_room': lambda e: entrar_na_sala(e),
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
     '/disconnect': lambda e: cliente.disconnect(e.split()[1]),
@@ -62,8 +61,8 @@ if __name__ == '__main__':
         else:
             nome_sala = salasdb.usuarios_sala.get(str(usuario), None)
             if nome_sala:
-                msg = f'[{nome_sala}] <{usuario}>: {e}'
+                msg = f'[{nome_sala}] <{usuario}>: ' + criptografar(e)
             else:
-                msg = f'<{usuario}>: {e}'
+                msg = f'<{usuario}>: ' + criptografar(e)
             cliente.send_msg(msg)
             logger.log(msg)

@@ -1,16 +1,8 @@
-from logging import *
+from logging import * # type: ignore
 from datetime import datetime
-import hashlib
 import os
 
-def criptografar(msg: str) -> str:
-    """
-    Criptografa uma mensagem usando o algoritmo SHA-256.
-    A mensagem criptografada em formato hexadecimal.
-    """
-    hash_object = hashlib.sha256()
-    hash_object.update(msg.encode('utf-8'))
-    return hash_object.hexdigest()
+
 
 class Logger:
     """
@@ -34,8 +26,8 @@ class Logger:
     
     def log(self, msg: str):
         """
-        Registra uma mensagem criptografada no arquivo de log.
+        Registra uma mensagem no arquivo de log.
         """
-        info(criptografar(msg))
+        info(msg)
 
 logger = Logger()

@@ -1,4 +1,5 @@
-from socket import *
+from socket import * # type: ignore
+import hashlib
 import platform
 import subprocess
 import os
@@ -11,7 +12,7 @@ def obter_hostname(port: int) -> str:
     """
     if platform.system() == 'Linux': hostname = get_local_ip_linux()
     if platform.system() == 'Windows': hostname = gethostbyname(gethostname())
-    return hostname + f':{port}'
+    return hostname + f':{port}' # type: ignore
 
 def tuple_to_socket(addr: tuple) -> str:
     """
@@ -47,10 +48,19 @@ def get_local_ip_linux() -> str:
             for line in result.stdout.splitlines():
                 if "inet " in line and "127.0.0.1" not in line:
                     return line.split()[1].split('/')[0]
-        return None
+        return ''
     except Exception as e:
         print(f"<SISTEMA>: Erro ao obter o IP local: {e}")
-        return None
+        return ''
+
+def criptografar(msg: str) -> str:
+    """
+    Criptografa uma mensagem usando o algoritmo SHA-256.
+    A mensagem criptografada em formato hexadecimal.
+    """
+    hash_object = hashlib.sha256()
+    hash_object.update(msg.encode('utf-8'))
+    return hash_object.hexdigest()
 
 def mostrar_comandos():
     print("\n<SISTEMA>: Comandos disponíveis:")

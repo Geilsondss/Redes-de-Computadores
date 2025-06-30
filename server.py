@@ -1,4 +1,4 @@
-from socket import *
+from socket import * # type: ignore
 from threading import Thread
 from peersdb import peersdb
 from client import *
