@@ -66,7 +66,6 @@ class Server:
                     break
                 msg = data.decode('utf-8')
                 if msg == "__DISCONNECT__":
-                    print(f"<SISTEMA>: O peer {addr} encerrou a conexão.")
                     ppe = str(peersdb.peers)
                     ppe = ppe[2:19]
                     cliente.disconnect(ppe.split()[0])
