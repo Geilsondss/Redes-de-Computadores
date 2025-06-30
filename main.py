@@ -9,10 +9,11 @@ from TRACKER.logs.logger import logger
 
 usuario = User()
 
+clear()
 print("Seja bem-vindo! Deseja logar ou se cadastrar?")
 print("1. Logar")
 print("2. Cadastrar")
-resposta = int(input())
+resposta = int(input("Digite uma das opções: "))
 
 if resposta == 1:
     usuario.login()
