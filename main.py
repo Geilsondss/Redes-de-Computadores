@@ -7,7 +7,17 @@ from TRACKER.userinfo.userinfo import User, UserException
 from TRACKER.logs.logger import logger
 
 usuario = User()
-usuario.login()
+
+print("Seja bem-vindo! Deseja logar ou se cadastrar?")
+print("1. Logar")
+print("2. Cadastrar")
+resposta = int(input())
+
+if resposta == 1:
+    usuario.login()
+else:
+    usuario.signin()
+
 PORTA = int(input('<SISTEMA>: Digite a porta fixa de comunicação: '))
 
 servidor = Server(PORTA, cliente)
@@ -61,8 +71,10 @@ if __name__ == '__main__':
         else:
             nome_sala = salasdb.usuarios_sala.get(str(usuario), None)
             if nome_sala:
-                msg = f'[{nome_sala}] <{usuario}>: ' + criptografar(e)
+                msg = f'[{nome_sala}] <{usuario}>: {e}'
+                cliente.send_msg(msg)
+                logger.log(f'[{nome_sala}] <{usuario}>: ' + criptografar(e))
             else:
-                msg = f'<{usuario}>: ' + criptografar(e)
-            cliente.send_msg(msg)
-            logger.log(msg)
+                msg = f'<{usuario}>: {e}'
+                cliente.send_msg(msg)
+                logger.log(f'<{usuario}>: ' + criptografar(e))

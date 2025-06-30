@@ -39,14 +39,6 @@ class User:
         """
         self.__name = ''
         self.__password = ''
-        if os.path.exists('TRACKER/userinfo/user.json'):
-            with open('TRACKER/userinfo/user.json', 'r') as file: credentials = json.load(file)
-            self.__name = credentials['username']
-            self.__password = credentials['password']
-        else:
-            clear()
-            print('<SISTEMA>: Credenciais de login não encontradas.\n<SISTEMA>: Cadastre um novo usuário.\n')
-            self.signin()
             
     def __str__(self) -> str:
         """
@@ -76,12 +68,17 @@ class User:
                 print(f'<SISTEMA>: {e}')
 
         self.__password = criptografar(self.__password)
-        credentials = {
-            'username': self.__name,
-            'password': self.__password
-        }
-        with open('TRACKER/userinfo/user.json', 'w') as file:
-            json.dump(credentials, file)
+
+        if os.path.exists('TRACKER/userinfo/user.json'):
+            with open('TRACKER/userinfo/user.json', 'r') as file: credentials = json.load(file)
+            credentials[self.__name] = self.__password
+            with open('TRACKER/userinfo/user.json', 'w') as file: json.dump(credentials, file)
+        else:
+            credentials = {
+                self.__name: self.__password
+            }
+            with open('TRACKER/userinfo/user.json', 'w') as file:
+                json.dump(credentials, file)
     
     def login(self):
         """
@@ -93,12 +90,22 @@ class User:
         """
         while True:
             try:
-                clear()
-                print('<SISTEMA>: Autenticação de usuário\n')
-                print(f'<SISTEMA>: Bem vindo {self.__name}!')
-                password = criptografar(input('<SISTEMA>: Digite sua senha: '))
-                criptografar(self.__password)
-                if password != self.__password: raise UserException('Senha incorreta.')
-                break
+                if os.path.exists('TRACKER/userinfo/user.json'):
+                    print('<SISTEMA>: Autenticação de usuário\n')
+                    with open('TRACKER/userinfo/user.json', 'r') as file: credentials = json.load(file)
+                    username = input('<SISTEMA>: Nome do usuário: ')
+                    if username not in credentials:
+                        raise UserException('Usuário não encontrado.')
+                    self.__name = username
+                    password = criptografar(input('<SISTEMA>: Digite sua senha: '))
+                    password_registered = credentials[username]
+                    if password != password_registered: raise UserException('Senha incorreta.')
+                    self.__password = password
+                    print(f'<SISTEMA>: Bem vindo {self.__name}!')
+                    break
+                else:
+                    print("Não existe nenhum usuário registrado.")
+                    print("Redirecionando para o registro.")
+                    self.signin()
             except UserException as e:
                 print(f'<SISTEMA>: {e}')
