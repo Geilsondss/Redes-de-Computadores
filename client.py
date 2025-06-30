@@ -123,7 +123,9 @@ class Client:
                     conn.close()
                     self.__connections.remove(conn)
                     peersdb.remove(addr_str)
+                    print('----------------------------------------------------------------------')
                     print(f"<SISTEMA>: Conexão encerrada com {addr_str}")
+                    print('----------------------------------------------------------------------')
                     return
             except Exception as e:
                 print(f"<SISTEMA>: Erro ao encerrar conexão com {addr_str}: {e}")
