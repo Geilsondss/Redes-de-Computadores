@@ -39,6 +39,7 @@ class User:
         """
         self.__name = ''
         self.__password = ''
+        self.__port = 5000
             
     def __str__(self) -> str:
         """
@@ -46,6 +47,9 @@ class User:
 
         """
         return self.__name
+    
+    def port(self) -> int:
+        return self.__port
     
     def signin(self):
         """
@@ -71,11 +75,16 @@ class User:
 
         if os.path.exists('TRACKER/userinfo/user.json'):
             with open('TRACKER/userinfo/user.json', 'r') as file: credentials = json.load(file)
-            credentials[self.__name] = self.__password
+            if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
+                with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+                self.__port += len(credentials) + len(rooms)
+            else:
+                self.__port += len(credentials)
+            credentials[self.__name] = (self.__password, self.__port)
             with open('TRACKER/userinfo/user.json', 'w') as file: json.dump(credentials, file)
         else:
             credentials = {
-                self.__name: self.__password
+                self.__name: (self.__password, self.__port)
             }
             with open('TRACKER/userinfo/user.json', 'w') as file:
                 json.dump(credentials, file)
@@ -98,9 +107,10 @@ class User:
                         raise UserException('Usuário não encontrado.')
                     self.__name = username
                     password = criptografar(input('<SISTEMA>: Digite sua senha: '))
-                    password_registered = credentials[username]
+                    password_registered = credentials[username][0]
                     if password != password_registered: raise UserException('Senha incorreta.')
                     self.__password = password
+                    self.__port = credentials[username][1]
                     print(f'<SISTEMA>: Bem vindo {self.__name}!')
                     break
                 else:

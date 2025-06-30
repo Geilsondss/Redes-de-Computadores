@@ -1,10 +1,11 @@
 from server import *
 from client import *
-from utils import obter_hostname, clear, socket_to_tuple, mostrar_comandos, criptografar, get_local_ip_windows
+from utils import *
 from peersdb import peersdb
 import platform
+import json
 from TRACKER.salasinfo.salasdb import *
-from TRACKER.userinfo.userinfo import User, UserException
+from TRACKER.userinfo.userinfo import User
 from TRACKER.logs.logger import logger
 
 usuario = User()
@@ -13,28 +14,40 @@ clear()
 print("Seja bem-vindo! Deseja logar ou se cadastrar?")
 print("1. Logar")
 print("2. Cadastrar")
-resposta = int(input("Digite uma das opções: "))
+while True:
+    resposta = input("Digite uma das opções: ")
+    if resposta == '1':
+        usuario.login()
+        break
+    elif resposta == '2':
+        usuario.signin()
+        break
+    print('Digite 1 ou 2 para continuar')
+    print('')
 
-if resposta == 1:
-    usuario.login()
-else:
-    usuario.signin()
-
-PORTA = int(input('<SISTEMA>: Digite a porta fixa de comunicação: '))
+PORTA = usuario.port()
 
 servidor = Server(PORTA, cliente)
 Thread(target=servidor.start, daemon=True).start()
 
+if os.path.exists('TRACKER/userinfo/usersactive.json'):
+    with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+    usersactive.append((usuario.__str__(), usuario.port()))
+    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+else:
+    usersactive = [(usuario.__str__(), usuario.port())]
+    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+
 comandos = {
     '/connect': lambda e: cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA)),
     '/peers': lambda e: print(peersdb.peers),
+    '/active': lambda e: print(usersactive),
     '/resignin': lambda e: usuario.signin(),
     '/create_room': lambda e: print(
-        "<SISTEMA>: É necessário fornecer nome, porta e senha." if len(e.split()) < 4
+        "<SISTEMA>: É necessário fornecer nome e senha." if len(e.split()) < 3
         else clear(), salasdb.criar_sala_com_servidor(
             nome=e.split()[1],
-            porta=int(e.split()[2]),
-            senha=e.split()[3],
+            senha=e.split()[2],
             criador=str(usuario))
     ),
     '/clear': lambda e: clear(),
@@ -78,6 +91,8 @@ if __name__ == '__main__':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]} {e.split()[2]}'
+                if command == '/active':
+                    with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
                 comandos[command](e)
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')

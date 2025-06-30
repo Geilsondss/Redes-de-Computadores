@@ -37,15 +37,24 @@ class SalasDB:
         self.usuarios_sala: dict[str, str] = {}       # Mapeia usuário → nome da sala
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
-    def criar_sala_com_servidor(self, nome: str, porta: int, senha: str, criador: str) -> str:
-        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            if nome in rooms:
-                return "<SISTEMA>: Sala já existe."
+    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str) -> str:
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
-
-        senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+        
+        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
+            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+            with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
+            porta = 5000 + len(rooms) + len(users)
+            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+            rooms[nome] = (porta, senha_hash)
+            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
+        else:
+            with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
+            porta = 5000 + len(users)
+            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
+                json.dump({nome: (porta, senha_hash)}, file)
+        
         sala = Sala(nome, porta, senha_hash, criador)
         self.salas[nome] = sala
         self.usuarios_sala[criador] = nome
@@ -55,31 +64,7 @@ class SalasDB:
         servidor = Server(porta, cliente)
         Thread(target=servidor.start, daemon=True).start()
 
-        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            rooms.append(nome)
-            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
-        else:
-            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
-                json.dump([nome], file)
-
         return f"\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta} (IP: {sala.ip})\n<SISTEMA>: Troca de mensagens disponível"
-
-    # Permite que um usuário entre em uma sala se a senha for correta
-    def entrar_sala(self, nome: str, usuario: str, senha: str = "") -> str:
-        if nome not in self.salas:
-            return "<SISTEMA>: Sala não existe."
-
-        sala = self.salas[nome]
-        if not sala.verificar_senha(senha):
-            return "<SISTEMA>: Senha incorreta."
-
-        if usuario not in sala.membros:
-            sala.membros.append(usuario)
-            self.usuarios_sala[usuario] = nome
-            return f"<SISTEMA>: Você entrou na sala {nome}."
-
-        return "<SISTEMA>: Você já está na sala."
 
     # Remove o usuário da sala onde ele está
     def sair_sala(self, usuario: str) -> str:
@@ -98,7 +83,10 @@ class SalasDB:
     def listar_salas(self) -> list[str]:
         if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
             with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            return rooms
+            room_port = []
+            for room in rooms:
+                room_port.append(f'{room}:{rooms[room][0]}')
+            return room_port
         else:
             return []
     
