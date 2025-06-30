@@ -1,7 +1,8 @@
 from server import *
 from client import *
-from utils import obter_hostname, clear, socket_to_tuple, mostrar_comandos, criptografar
+from utils import obter_hostname, clear, socket_to_tuple, mostrar_comandos, criptografar, get_local_ip_windows
 from peersdb import peersdb
+import platform
 from TRACKER.salasinfo.salasdb import *
 from TRACKER.userinfo.userinfo import User, UserException
 from TRACKER.logs.logger import logger
@@ -65,16 +66,28 @@ if __name__ == '__main__':
 
         if e[0] == '/':
             try:
-                comandos[e.split()[0]](e)
+                command = e.split()[0]
+                if command == '/connect' or command == '/disconnect' or command == '/add_in_room':
+                    if platform.system() == 'Windows':
+                        e = f'{command} {get_local_ip_windows()}:{e.split()[1]}'
+                    else:
+                        e = f'{command} {get_local_ip_linux()}:{e.split()[1]}'
+                if command == '/kick_peer':
+                    if platform.system() == 'Windows':
+                        e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
+                    else:
+                        e = f'{command} {get_local_ip_linux()}:{e.split()[1]} {e.split()[2]}'
+                comandos[command](e)
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')
         else:
             nome_sala = salasdb.usuarios_sala.get(str(usuario), None)
             if nome_sala:
                 msg = f'[{nome_sala}] <{usuario}>: {e}'
-                cliente.send_msg(msg)
-                logger.log(f'[{nome_sala}] <{usuario}>: ' + criptografar(e))
+                msg_cripto = f'[{nome_sala}] <{usuario}>: ' + criptografar(e)
             else:
                 msg = f'<{usuario}>: {e}'
-                cliente.send_msg(msg)
-                logger.log(f'<{usuario}>: ' + criptografar(e))
+                msg_cripto = (f'<{usuario}>: ' + criptografar(e))
+            cliente.send_msg(msg)
+            logger.log(msg_cripto)
+            

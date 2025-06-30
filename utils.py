@@ -3,6 +3,7 @@ import hashlib
 import platform
 import subprocess
 import os
+import re
 
 def obter_hostname(port: int) -> str:
     """
@@ -48,6 +49,28 @@ def get_local_ip_linux() -> str:
             for line in result.stdout.splitlines():
                 if "inet " in line and "127.0.0.1" not in line:
                     return line.split()[1].split('/')[0]
+        return ''
+    except Exception as e:
+        print(f"<SISTEMA>: Erro ao obter o IP local: {e}")
+        return ''
+
+def get_local_ip_windows() -> str:
+    """
+    Obtém o endereço IP local em sistemas Windows.
+    - Utiliza o comando `ipconfig` para obter o IP.
+    - Ignora o endereço de loopback (`127.0.0.1`) e endereços IPv6.
+    """
+    try:
+        result = subprocess.run(["ipconfig"], capture_output=True, text=True)
+        if result.returncode == 0:
+            # Expressão regular para capturar IPv4 (ignorando 127.0.0.1)
+            ipv4_pattern = re.compile(r"IPv4.*?:\s*([\d.]+)")
+            for line in result.stdout.splitlines():
+                match = ipv4_pattern.search(line)
+                if match:
+                    ip = match.group(1)
+                    if ip != "127.0.0.1":
+                        return ip
         return ''
     except Exception as e:
         print(f"<SISTEMA>: Erro ao obter o IP local: {e}")
