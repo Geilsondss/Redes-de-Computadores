@@ -32,8 +32,9 @@ Thread(target=servidor.start, daemon=True).start()
 
 if os.path.exists('TRACKER/userinfo/usersactive.json'):
     with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-    usersactive.append((usuario.__str__(), usuario.port()))
-    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+    if [usuario.__str__(), usuario.port()] not in usersactive:
+        usersactive.append((usuario.__str__(), usuario.port()))
+        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 else:
     usersactive = [(usuario.__str__(), usuario.port())]
     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
@@ -86,13 +87,18 @@ if __name__ == '__main__':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]}'
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]}'
-                if command == '/kick_peer':
+                elif command == '/kick_peer':
                     if platform.system() == 'Windows':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]} {e.split()[2]}'
-                if command == '/active':
+                elif command == '/active':
                     with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+                elif command == '/exit':
+                    with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+                    usersactive.remove([usuario.__str__(), usuario.port()])
+                    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                    break
                 comandos[command](e)
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')

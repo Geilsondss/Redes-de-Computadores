@@ -101,6 +101,7 @@ def mostrar_comandos():
     print("/leave_room                          → Sai da sala atual.")
     print("/rooms                               → Lista todas as salas disponíveis.")
     print("/delete_room <nome>                  → Deleta uma sala criada por você.")
+    print("/exit                                → Sai do servidor.")
     print("-" * 70)
     
 def clear():
