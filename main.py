@@ -7,6 +7,7 @@ import json
 from TRACKER.salasinfo.salasdb import *
 from TRACKER.userinfo.userinfo import User
 from TRACKER.logs.logger import logger
+from TRACKER.salasinfo.roomcommands import comando_add_in_room
 
 usuario = User()
 
@@ -39,6 +40,7 @@ else:
     usersactive = [(usuario.__str__(), usuario.port())]
     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
+
 comandos = {
     '/connect': lambda e: cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA)),
     '/peers': lambda e: print(peersdb.peers),
@@ -54,10 +56,7 @@ comandos = {
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
     '/disconnect': lambda e: cliente.disconnect(e.split()[1]),
-    '/add_in_room' : lambda e: (
-        cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA)),
-        cliente.send_control_message(e.split()[1], "__ADDED_TO_ROOM__")
-    ),
+    '/add_in_room': lambda e: comando_add_in_room(usuario, e.split()[1]),
     '/kick_peer': lambda e: (
         cliente.send_control_message(e.split()[1], "__KICK__"),
         cliente.disconnect(e.split()[1])
