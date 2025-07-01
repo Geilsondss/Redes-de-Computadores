@@ -43,14 +43,13 @@ class SalasDB:
         
         if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
             with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
-            porta = 5000 + len(rooms) + len(users)
+            porta = 6000 + len(rooms)
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
             rooms[nome] = (porta, senha_hash)
             with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
         else:
             with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
-            porta = 5000 + len(users)
+            porta = 6000
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
             with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
                 json.dump({nome: (porta, senha_hash)}, file)

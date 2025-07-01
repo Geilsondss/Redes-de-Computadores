@@ -75,11 +75,7 @@ class User:
 
         if os.path.exists('TRACKER/userinfo/user.json'):
             with open('TRACKER/userinfo/user.json', 'r') as file: credentials = json.load(file)
-            if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-                with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-                self.__port += len(credentials) + len(rooms)
-            else:
-                self.__port += len(credentials)
+            self.__port += len(credentials)
             credentials[self.__name] = (self.__password, self.__port)
             with open('TRACKER/userinfo/user.json', 'w') as file: json.dump(credentials, file)
         else:
