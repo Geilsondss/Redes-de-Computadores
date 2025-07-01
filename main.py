@@ -90,6 +90,7 @@ if __name__ == '__main__':
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]}'
                 elif command == '/kick_peer':
+                    porta = e.split()[1]
                     if platform.system() == 'Windows':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
                     else:
@@ -106,6 +107,14 @@ if __name__ == '__main__':
                             usersactive[user] = usersactive[f'{usuario.__str__()} : {usuario.port()}']
                             break
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                elif command == '/kick_peer':
+                    for user in usersactive:
+                        port = user.split()[2]
+                        if  porta == port:
+                            usersactive[user] = ''
+                            break
+                    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')
         else:
