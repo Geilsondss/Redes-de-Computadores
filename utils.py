@@ -1,3 +1,4 @@
+
 from socket import * # type: ignore
 import hashlib
 import platform
@@ -108,3 +109,4 @@ def clear():
     os.system('cls')
     print('++++++++++++++++++++++++++++++ CHAT P2P ++++++++++++++++++++++++++++++')
     print('                                                                 /menu\n')
+
