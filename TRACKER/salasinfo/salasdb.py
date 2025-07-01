@@ -63,7 +63,7 @@ class SalasDB:
         servidor = Server(porta, cliente)
         Thread(target=servidor.start, daemon=True).start()
 
-        return f"\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta} (IP: {sala.ip})\n<SISTEMA>: Troca de mensagens disponível"
+        return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
     # Remove o usuário da sala onde ele está
     def sair_sala(self, usuario: str) -> str:
@@ -100,6 +100,20 @@ class SalasDB:
                 del self.usuarios_sala[membro]
         del self.salas[nome]
         return f"<SISTEMA>: Sala '{nome}' foi deletada com sucesso."
+    
+    def adicionar_peer_na_sala(self, criador: str, peer_addr: str) -> str:
+        if criador not in self.usuarios_sala:
+            return "<SISTEMA>: Você precisa estar em uma sala para adicionar membros."
+
+        nome_sala = self.usuarios_sala[criador]
+        sala = self.salas[nome_sala]
+
+        if peer_addr not in sala.membros:
+            sala.membros.append(peer_addr)
+            
+            return f"<SISTEMA>: Peer {peer_addr} adicionado à sala '{nome_sala}'.\n----------------------------------------------------------------------\n"
+        else:
+            return "<SISTEMA>: Peer já está na sala."
 
 # Comando para expulsar um usuário da sala, se quem executar for o criador
 def expulsar_usuario(e: str):
