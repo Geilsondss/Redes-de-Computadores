@@ -53,7 +53,15 @@ class SalasDB:
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
             with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
                 json.dump({nome: (porta, senha_hash)}, file)
+
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        for user in usersactive:
+            usuario = user.split()[0]
+            if criador == usuario:
+                usersactive[user] = nome
+                break
         
+        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
         sala = Sala(nome, porta, senha_hash, criador)
         self.salas[nome] = sala
         self.usuarios_sala[criador] = nome
@@ -116,7 +124,7 @@ class SalasDB:
             return "<SISTEMA>: Peer já está na sala."
 
 # Comando para expulsar um usuário da sala, se quem executar for o criador
-def expulsar_usuario(e: str):
+def expulsar_usuario(e: str, solicitante: str):
     partes = e.split()
     if len(partes) < 3:
         print("<SISTEMA>: Uso correto: /kick_peer <usuario> <sala>")
@@ -130,7 +138,7 @@ def expulsar_usuario(e: str):
         print("<SISTEMA>: Sala não encontrada.")
         return
 
-    resultado = sala.expulsar(str(usuario), usuario_expulso)
+    resultado = sala.expulsar(solicitante, usuario_expulso)
     print(resultado)
 
 

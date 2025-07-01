@@ -51,6 +51,12 @@ class User:
     def port(self) -> int:
         return self.__port
     
+    def get_room(self) -> str:
+        return self.__room
+    
+    def set_room(self, room:str):
+        self.__room = room
+    
     def signin(self):
         """
         Realiza o cadastro de um novo usuário.
