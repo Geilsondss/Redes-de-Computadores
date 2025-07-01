@@ -37,6 +37,7 @@ class Server:
         """
         global peersdb
         global cliente
+        global sala
         print('<SISTEMA>: Servidor inicializado.\n\n<SISTEMA>: Para realizar ações, digite um dos comandos disponíveis.')
         try:
             while True:
@@ -76,8 +77,13 @@ class Server:
                     ppe = ppe[2:19]
                     cliente.disconnect(ppe.split()[0])
                     break
-                elif msg == "__ADDED_TO_ROOM__":
-                    print(f"<SISTEMA>: Você foi adicionado à sala pelo criador.")
+
+                elif msg.startswith("__ADDED_TO_ROOM__::"):
+                    nome_sala = msg.split("::")[1]
+                    print('----------------------------------------------------------------------')
+                    print(f"<SISTEMA>: Você foi adicionado à sala '{nome_sala}' pelo criador.")
+                    print('----------------------------------------------------------------------')
+
                 else:
                     print(f'{msg}')
                     logger.log(msg)
@@ -97,3 +103,4 @@ class Server:
         self.__server.close()
         for thread in self.__threads:
             thread.join()
+        
