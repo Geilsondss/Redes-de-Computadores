@@ -40,6 +40,7 @@ class SalasDB:
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
     def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
+        global peersdb
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
         
