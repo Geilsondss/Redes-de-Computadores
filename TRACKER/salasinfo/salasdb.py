@@ -6,6 +6,7 @@ from threading import Thread
 from server import Server
 from client import cliente
 from utils import *
+from peersdb import peersdb
 
 # Representa uma sala de chat privada com senha e controle de membros
 class Sala:
@@ -71,6 +72,10 @@ class SalasDB:
         # Inicia o servidor da sala em thread separada
         servidor = Server(porta, cliente)
         Thread(target=servidor.start, daemon=True).start()
+        ppe = str(peersdb.peers)
+        ppe = ppe[2:19]
+        cliente.disconnect(ppe.split()[0])
+        clear()
 
         #self.entrar_sala(nome, senha, criador, porta_criador)
 
