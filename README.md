@@ -1,4 +1,4 @@
-# 📡 Projeto CHAT P2P - Comunicação entre Peers
+# 📡 Projeto CHAT P2P - Rede Local
 
 Este projeto consiste na implementação de um sistema de **mensagens peer-to-peer (P2P)** com autenticação centralizada via **Tracker (servidor)**, salas privadas protegidas por senha, registro de logs, e arquitetura modular orientada a objetos.
 
