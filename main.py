@@ -63,9 +63,8 @@ comandos = {
     '/rooms': lambda e: print(salasdb.listar_salas()),
     '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
     '/leave_room': lambda e: (
-        print(salasdb.sair_sala(str(usuario))),
-        usuario.set_room('')
-    ),
+        print(salasdb.sair_sala(usuario))
+        ),
     '/delete_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer o nome da sala." if len(e.split()) < 2
         else salasdb.deletar_sala(e.split()[1], str(usuario))
