@@ -47,7 +47,8 @@ comandos = {
         else clear(), salasdb.criar_sala_com_servidor(
             nome=e.split()[1],
             senha=e.split()[2],
-            criador=str(usuario)),
+            criador=str(usuario),
+            porta_criador = usuario.port()),
     ),
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
@@ -60,6 +61,7 @@ comandos = {
         cliente.disconnect(e.split()[1])
     ),
     '/rooms': lambda e: print(salasdb.listar_salas()),
+    '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
     '/leave_room': lambda e: (
         print(salasdb.sair_sala(str(usuario))),
         usuario.set_room('')

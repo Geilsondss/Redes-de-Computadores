@@ -1,10 +1,11 @@
 import hashlib
 import json
 import os
+import platform
 from threading import Thread
 from server import Server
 from client import cliente
-from utils import obter_hostname, socket_to_tuple
+from utils import *
 
 # Representa uma sala de chat privada com senha e controle de membros
 class Sala:
@@ -37,7 +38,7 @@ class SalasDB:
         self.usuarios_sala: dict[str, str] = {}       # Mapeia usuário → nome da sala
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
-    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str) -> str:
+    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
         
@@ -45,14 +46,14 @@ class SalasDB:
             with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
             porta = 6000 + len(rooms)
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-            rooms[nome] = (porta, senha_hash)
+            rooms[nome] = [porta, senha_hash, criador]
             with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
         else:
             with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
             porta = 6000
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
             with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
-                json.dump({nome: (porta, senha_hash)}, file)
+                json.dump({nome: [porta, senha_hash, criador]}, file)
 
         with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
         for user in usersactive:
@@ -60,8 +61,8 @@ class SalasDB:
             if criador == usuario:
                 usersactive[user] = nome
                 break
-        
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+
         sala = Sala(nome, porta, senha_hash, criador)
         self.salas[nome] = sala
         self.usuarios_sala[criador] = nome
@@ -70,6 +71,8 @@ class SalasDB:
         # Inicia o servidor da sala em thread separada
         servidor = Server(porta, cliente)
         Thread(target=servidor.start, daemon=True).start()
+
+        #self.entrar_sala(nome, senha, criador, porta_criador)
 
         return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
@@ -122,6 +125,29 @@ class SalasDB:
             return f"<SISTEMA>: Peer {peer_addr} adicionado à sala '{nome_sala}'.\n----------------------------------------------------------------------\n"
         else:
             return "<SISTEMA>: Peer já está na sala."
+    
+    def entrar_sala(self, sala: str, senha: str, solicitante: str, porta: int):
+        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
+            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+            if sala in rooms:
+                senha_armazenada = rooms[sala][1]
+                senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+                porta_sala = rooms[sala][0]
+                if senha_hash == senha_armazenada:
+                    if platform.system() == 'Windows':
+                        cliente.connect(socket_to_tuple(f'{get_local_ip_windows()}:{porta_sala}'), obter_hostname(porta))
+                        print(f'{solicitante} entrou na sala.')
+                    else:
+                        cliente.connect(socket_to_tuple(f'{get_local_ip_linux()}:{porta_sala}'), obter_hostname(porta))
+                    with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+                    usersactive[f'{solicitante} : {porta}'] = sala
+                    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                else:
+                    print("Senha incorreta!")
+            else:
+                print("Esta sala não existe")
+        else:
+            print("Não existem salas disponíveis para entrar")
 
 # Comando para expulsar um usuário da sala, se quem executar for o criador
 def expulsar_usuario(e: str, solicitante: str):

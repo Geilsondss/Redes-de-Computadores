@@ -99,6 +99,7 @@ def mostrar_comandos():
     print("/create_room <nome> [senha]          → Cria uma sala com IP e senha.")
     print("/add_in_room <PORTA>                 → Adiciona a um peer específico a uma sala (apenas criador).")
     print("/kick_peer <PORTA> <sala>            → Expulsa um usuário da sala (apenas criador).")
+    print("/enter_room <nome> [senha]           → Entra em uma sala.")
     print("/leave_room                          → Sai da sala atual.")
     print("/rooms                               → Lista todas as salas disponíveis.")
     print("/delete_room <nome>                  → Deleta uma sala criada por você.")
