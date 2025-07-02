@@ -103,4 +103,3 @@ class Server:
         self.__server.close()
         for thread in self.__threads:
             thread.join()
-        

@@ -39,7 +39,7 @@ class SalasDB:
         self.usuarios_sala: dict[str, str] = {}       # Mapeia usuário → nome da sala
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
-    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str) -> str:
+    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
         global peersdb
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
@@ -78,19 +78,26 @@ class SalasDB:
         cliente.disconnect(ppe.split()[0])
         clear()
 
+        #self.entrar_sala(nome, senha, criador, porta_criador)
+
         return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
     # Remove o usuário da sala onde ele está
-    def sair_sala(self, usuario: str) -> str:
-        if usuario not in self.usuarios_sala:
+    def sair_sala(self, usuario) -> str:
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        if usersactive[f'{usuario.__str__()} : {usuario.port()}'] == '':
             return "<SISTEMA>: Você não está em nenhuma sala."
 
-        nome_sala = self.usuarios_sala[usuario]
-        sala = self.salas[nome_sala]
-        if usuario in sala.membros:
-            sala.membros.remove(usuario)
+        nome_sala = usersactive[f'{usuario.__str__()} : {usuario.port()}']
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        porta_sala = rooms[nome_sala][0]
+        if platform.system() == 'Windows':
+            cliente.disconnect(f'{get_local_ip_windows()}:{porta_sala}')
+        else:
+            cliente.disconnect(f'{get_local_ip_linux()}:{porta_sala}')
+        usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
+        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
-        del self.usuarios_sala[usuario]
         return f"<SISTEMA>: Você saiu da sala {nome_sala}."
 
     # Retorna uma lista com os nomes de todas as salas existentes
