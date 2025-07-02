@@ -47,8 +47,7 @@ comandos = {
         else clear(), salasdb.criar_sala_com_servidor(
             nome=e.split()[1],
             senha=e.split()[2],
-            criador=str(usuario),
-            porta_criador = usuario.port()),
+            criador=str(usuario)),
     ),
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
@@ -63,8 +62,7 @@ comandos = {
     '/rooms': lambda e: print(salasdb.listar_salas()),
     '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
     '/leave_room': lambda e: (
-        print(salasdb.sair_sala(str(usuario))),
-        usuario.set_room('')
+        print(salasdb.sair_sala(str(usuario)))
     ),
     '/delete_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer o nome da sala." if len(e.split()) < 2
@@ -115,6 +113,9 @@ if __name__ == '__main__':
                         if  porta == port:
                             usersactive[user] = ''
                             break
+                    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                elif command == '/leave_room':
+                    usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
             except Exception as e:

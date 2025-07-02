@@ -39,7 +39,7 @@ class SalasDB:
         self.usuarios_sala: dict[str, str] = {}       # Mapeia usuário → nome da sala
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
-    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
+    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str) -> str:
         global peersdb
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
@@ -77,8 +77,6 @@ class SalasDB:
         ppe = ppe[2:19]
         cliente.disconnect(ppe.split()[0])
         clear()
-
-        #self.entrar_sala(nome, senha, criador, porta_criador)
 
         return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
