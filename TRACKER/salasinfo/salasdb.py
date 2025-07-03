@@ -83,20 +83,15 @@ class SalasDB:
         return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
     # Remove o usuário da sala onde ele está
-    def sair_sala(self, usuario) -> str:
-        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-        if usersactive[f'{usuario.__str__()} : {usuario.port()}'] == '':
+    def sair_sala(self, usuario: str) -> str:
+        if usuario not in self.usuarios_sala:
             return "<SISTEMA>: Você não está em nenhuma sala."
 
-        nome_sala = usersactive[f'{usuario.__str__()} : {usuario.port()}']
-        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-        porta_sala = rooms[nome_sala][0]
-        if platform.system() == 'Windows':
-            cliente.disconnect(f'{get_local_ip_windows()}:{porta_sala}')
-        else:
-            cliente.disconnect(f'{get_local_ip_linux()}:{porta_sala}')
-        usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
-        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+        nome_sala = self.usuarios_sala[usuario]
+        sala = self.salas[nome_sala]
+        if usuario in sala.membros:
+            sala.membros.remove(usuario)
+        
         ppe = str(peersdb.peers)
         ppe = ppe[2:19]
         cliente.disconnect(ppe.split()[0])
