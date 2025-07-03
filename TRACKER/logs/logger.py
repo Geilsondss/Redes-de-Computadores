@@ -2,8 +2,6 @@ from logging import * # type: ignore
 from datetime import datetime
 import os
 
-
-
 class Logger:
     """
     Classe responsável por gerenciar o registro de mensagens (logs) em arquivos.
