@@ -31,6 +31,7 @@ PORTA = usuario.port()
 servidor = Server(PORTA, cliente)
 Thread(target=servidor.start, daemon=True).start()
 
+#O usuário logado é adicionado ao arquivo que contém os peers ativos
 with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
 if f'{usuario.__str__()} : {usuario.port()}' not in usersactive:
     usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
@@ -41,7 +42,6 @@ comandos = {
     '/connect': lambda e: cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA)),
     '/peers': lambda e: print(peersdb.peers),
     '/active': lambda e: print(list(usersactive.keys())),
-    '/resignin': lambda e: usuario.signin(),
     '/create_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer nome e senha." if len(e.split()) < 3
         else clear(), salasdb.criar_sala_com_servidor(
@@ -84,23 +84,31 @@ if __name__ == '__main__':
         if e[0] == '/':
             try:
                 command = e.split()[0]
+
+                #Adiciona o IP local aos comandos abaixo
                 if command == '/connect' or command == '/disconnect' or command == '/add_in_room':
                     porta = e.split()[1]
                     if platform.system() == 'Windows':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]}'
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]}'
+                
+                #Adiciona o IP local ao comando abaixo que possui uma estrutura diferente
                 elif command == '/kick_peer':
                     porta = e.split()[1]
                     if platform.system() == 'Windows':
                         e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
                     else:
                         e = f'{command} {get_local_ip_linux()}:{e.split()[1]} {e.split()[2]}'
+                
+                #O usuário que saiu é retirado da lista de peers ativos
                 elif command == '/exit':
                     del usersactive[f'{usuario.__str__()} : {usuario.port()}']
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
                     break
                 comandos[command](e)
+
+                #Após ser adicionado à sala com sucesso, é atribuído ao usuário o nome da sala em que está
                 if command == '/add_in_room':
                     for user in usersactive:
                         port = user.split()[2]
@@ -108,6 +116,8 @@ if __name__ == '__main__':
                             usersactive[user] = usersactive[f'{usuario.__str__()} : {usuario.port()}']
                             break
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                
+                #Após ser removido da sala com sucesso, é desassociado do usuário o nome da sala em que estava
                 elif command == '/kick_peer':
                     for user in usersactive:
                         port = user.split()[2]
