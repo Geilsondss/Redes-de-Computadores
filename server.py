@@ -37,7 +37,6 @@ class Server:
         """
         global peersdb
         global cliente
-        global sala
         print('<SISTEMA>: Servidor inicializado.\n\n<SISTEMA>: Para realizar ações, digite um dos comandos disponíveis.')
         try:
             while True:
@@ -103,3 +102,4 @@ class Server:
         self.__server.close()
         for thread in self.__threads:
             thread.join()
+        
