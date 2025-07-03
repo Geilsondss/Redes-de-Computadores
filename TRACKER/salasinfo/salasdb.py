@@ -39,8 +39,8 @@ class SalasDB:
         self.usuarios_sala: dict[str, str] = {}       # Mapeia usuário → nome da sala
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
+    global peersdb
     def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
-        global peersdb
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
         
@@ -97,7 +97,10 @@ class SalasDB:
             cliente.disconnect(f'{get_local_ip_linux()}:{porta_sala}')
         usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
-
+        ppe = str(peersdb.peers)
+        ppe = ppe[2:19]
+        cliente.disconnect(ppe.split()[0])
+        del self.usuarios_sala[usuario]
         return f"<SISTEMA>: Você saiu da sala {nome_sala}."
 
     # Retorna uma lista com os nomes de todas as salas existentes
