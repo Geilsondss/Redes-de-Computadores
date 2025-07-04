@@ -73,30 +73,39 @@ class SalasDB:
         # Inicia o servidor da sala em thread separada
         servidor = Server(porta, cliente)
         Thread(target=servidor.start, daemon=True).start()
-        ppe = str(peersdb.peers)
-        ppe = ppe[2:19]
-        cliente.disconnect(ppe.split()[0])
-        clear()
+        if len(str(peersdb.peers)) > 5:
+            ppe = str(peersdb.peers)
+            ppe = ppe[2:19]
+            cliente.disconnect(ppe.split()[0])
+            clear()
 
         #self.entrar_sala(nome, senha, criador, porta_criador)
 
         return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
     # Remove o usuário da sala onde ele está
-    def sair_sala(self, usuario: str) -> str:
-        if usuario not in self.usuarios_sala:
+    def sair_sala(self, usuario) -> str:
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        if usersactive[f'{usuario._str_()} : {usuario.port()}'] == '':
             return "<SISTEMA>: Você não está em nenhuma sala."
 
-        nome_sala = self.usuarios_sala[usuario]
-        sala = self.salas[nome_sala]
-        if usuario in sala.membros:
-            sala.membros.remove(usuario)
-        
-        ppe = str(peersdb.peers)
-        ppe = ppe[2:19]
-        cliente.disconnect(ppe.split()[0])
-        del self.usuarios_sala[usuario]
+        nome_sala = usersactive[f'{usuario._str_()} : {usuario.port()}']
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        porta_sala = rooms[nome_sala][0]
+        if platform.system() == 'Windows':
+            cliente.disconnect(f'{get_local_ip_windows()}:{porta_sala}')
+        else:
+            cliente.disconnect(f'{get_local_ip_linux()}:{porta_sala}')
+        usersactive[f'{usuario._str_()} : {usuario.port()}'] = ''
+        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+
+        if len(str(peersdb.peers)) > 5:
+            ppe = str(peersdb.peers)
+            ppe = ppe[2:19]
+            cliente.disconnect(ppe.split()[0])
+            del self.usuarios_sala[usuario]
         return f"<SISTEMA>: Você saiu da sala {nome_sala}."
+
 
     # Retorna uma lista com os nomes de todas as salas existentes
     def listar_salas(self) -> list[str]:
