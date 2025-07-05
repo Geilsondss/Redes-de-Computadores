@@ -72,12 +72,12 @@ class Server:
                     break
                 elif msg == "__KICK__":
                     nome_sala = msg.split("::")[1]
+                    ppe = str(peersdb.peers)
+                    ppe = ppe[2:19]
+                    cliente.auxi_disconnect_room(ppe.split()[0])
                     print('----------------------------------------------------------------------')
                     print(f"<SISTEMA>: Você foi removido da sala '{nome_sala}' pelo criador.")
                     print('----------------------------------------------------------------------')
-                    ppe = str(peersdb.peers)
-                    ppe = ppe[2:19]
-                    cliente.disconnect(ppe.split()[0])
                     break
 
                 elif msg.startswith("__ADDED_TO_ROOM__::"):
