@@ -58,7 +58,7 @@ comandos = {
         ),
     '/kick_peer': lambda e: (
         cliente.send_control_message(e.split()[1], "__KICK__"),
-        cliente.auxi_disconnect_room(e.split()[1])
+        cliente.disconnect(e.split()[1])
     ),
     '/rooms': lambda e: print(salasdb.listar_salas()),
     '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
