@@ -142,5 +142,23 @@ class Client:
                         conn.sendall(msg.encode('utf-8'))
                         return
                 except: continue
+                
+    def auxi_disconnect_room(self, addr_str: str):
+        """
+        Encerra a conexão com peers antes de entrar na sala.
+        Envia uma mensagem especial "__DISCONNECT__" antes de fechar.
+        """
+        addr = socket_to_tuple(addr_str)
+        for conn in list(self.__connections.connections):
+            try:
+                if conn.getpeername() == addr:
+                    conn.sendall("__DISCONNECT__".encode('utf-8'))
+                    conn.close()
+                    self.__connections.remove(conn)
+                    peersdb.remove(addr_str)
+                    return
+            except Exception as e:
+                print(f"<SISTEMA>: Erro ao encerrar conexão com {addr_str}: {e}")
+        print(f"<SISTEMA>: Conexão com {addr_str} não encontrada.")
         
 cliente = Client()
