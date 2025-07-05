@@ -76,7 +76,7 @@ class SalasDB:
         if len(str(peersdb.peers)) > 5:
             ppe = str(peersdb.peers)
             ppe = ppe[2:19]
-            cliente.disconnect(ppe.split()[0])
+            cliente.auxi_disconnect_room(ppe.split()[0])
             clear()
 
         #self.entrar_sala(nome, senha, criador, porta_criador)
@@ -102,7 +102,7 @@ class SalasDB:
         if len(str(peersdb.peers)) > 5:
             ppe = str(peersdb.peers)
             ppe = ppe[2:19]
-            cliente.disconnect(ppe.split()[0])
+            cliente.auxi_disconnect_room(ppe.split()[0])
             del self.usuarios_sala[usuario]
         return f"<SISTEMA>: Você saiu da sala {nome_sala}."
 
