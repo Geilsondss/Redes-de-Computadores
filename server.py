@@ -71,7 +71,10 @@ class Server:
                     cliente.disconnect(ppe.split()[0])
                     break
                 elif msg == "__KICK__":
-                    print(f"<SISTEMA>: Você foi removido da sala pelo criador.")
+                    nome_sala = msg.split("::")[1]
+                    print('----------------------------------------------------------------------')
+                    print(f"<SISTEMA>: Você foi removido da sala '{nome_sala}' pelo criador.")
+                    print('----------------------------------------------------------------------')
                     ppe = str(peersdb.peers)
                     ppe = ppe[2:19]
                     cliente.disconnect(ppe.split()[0])
