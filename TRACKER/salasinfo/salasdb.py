@@ -154,7 +154,7 @@ class SalasDB:
                 if senha_hash == senha_armazenada:
                     if platform.system() == 'Windows':
                         cliente.connect(socket_to_tuple(f'{get_local_ip_windows()}:{porta_sala}'), obter_hostname(porta))
-                        print(f'{solicitante} entrou na sala.')
+                        #ENVIAR UMA MENSAGEM INFORNMANDO QUE ESSA ENTROu
                     else:
                         cliente.connect(socket_to_tuple(f'{get_local_ip_linux()}:{porta_sala}'), obter_hostname(porta))
                     with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
