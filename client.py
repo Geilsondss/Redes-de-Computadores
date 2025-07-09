@@ -63,8 +63,6 @@ class Client:
             if addr[0] in ['127.0.0.1', '127.0.1.1']: raise ClientException('<SISTEMA>: Conexão com localhost não permitida')
             conn = socket(AF_INET, SOCK_STREAM)
             conn.connect(addr)
-            
-            clear()
             print('----------------------------------------------------------------------')
             print(f'<SISTEMA>: Conexão estabelecida com {tuple_to_socket(addr)}\n<SISTEMA>: Troca de mensagens disponível')
             print('----------------------------------------------------------------------')
@@ -130,6 +128,29 @@ class Client:
             except Exception as e:
                 print(f"<SISTEMA>: Erro ao encerrar conexão com {addr_str}: {e}")
         print(f"<SISTEMA>: Conexão com {addr_str} não encontrada.")
+        
+    
+    def disconnect_room(self, addr_str: str):
+        """
+        Encerra a conexão com um peer específico baseado em IP:PORTA.
+        Envia uma mensagem especial "__DISCONNECT__" antes de fechar.
+        """
+        addr = socket_to_tuple(addr_str)
+        for conn in list(self.__connections.connections):
+            try:
+                if conn.getpeername() == addr:
+                    conn.sendall("__KICK__".encode('utf-8'))
+                    conn.close()
+                    self.__connections.remove(conn)
+                    peersdb.remove(addr_str)
+                    print('----------------------------------------------------------------------')
+                    print(f"<SISTEMA>: {addr_str} foi retirado da sala")
+                    print('----------------------------------------------------------------------')
+                    return
+            except Exception as e:
+                print(f"<SISTEMA>: Erro ao encerrar conexão com {addr_str}: {e}")
+        print(f"<SISTEMA>: Conexão com {addr_str} não encontrada.")
+        
         
     def send_control_message(self, addr_str: str, msg: str):
             """
