@@ -40,22 +40,16 @@ class SalasDB:
 
     # Cria uma nova sala e inicia um servidor escutando na porta especificada
     global peersdb
-    def criar_sala_com_servidor(self, nome: str, senha: str, criador: str, porta_criador: int) -> str:
+    def criar_sala(self, nome: str, senha: str, criador: str) -> str:
         if not senha:
             return "<SISTEMA>: É necessário definir uma senha para criar uma sala privada."
         
-        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            porta = 6000 + len(rooms)
-            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-            rooms[nome] = [porta, senha_hash, criador]
-            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
-        else:
-            with open('TRACKER/userinfo/user.json', 'r') as file: users = json.load(file)
-            porta = 6000
-            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file:
-                json.dump({nome: [porta, senha_hash, criador]}, file)
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        if nome in rooms:
+            return "<SISTEMA>: Já existe uma sala com este nome."
+        senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+        rooms[nome] = [senha_hash, criador, [criador]]
+        with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
 
         with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
         for user in usersactive:
@@ -65,127 +59,110 @@ class SalasDB:
                 break
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
-        sala = Sala(nome, porta, senha_hash, criador)
-        self.salas[nome] = sala
-        self.usuarios_sala[criador] = nome
-        sala.membros.append(criador)
-
-        # Inicia o servidor da sala em thread separada
-        if platform.system() == 'Windows':
-            ip = get_local_ip_windows()
-        else:
-            ip = get_local_ip_linux()
-        servidor = Server(porta, cliente, f'{ip}:{porta}')
-        Thread(target=servidor.start, daemon=True).start()
-        if len(str(peersdb.peers)) > 5:
-            ppe = str(peersdb.peers)
-            ppe = ppe[2:19]
-            cliente.auxi_disconnect_room(ppe.split()[0])
-            clear()
-
-        #self.entrar_sala(nome, senha, criador, porta_criador)
-
-        return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso na porta {porta}\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
+        return f"\n----------------------------------------------------------------------\n<SISTEMA>: Sala '{nome}' criada com sucesso\n----------------------------------------------------------------------\n<SISTEMA>: Troca de mensagens disponível"
 
     # Remove o usuário da sala onde ele está
-    def sair_sala(self, usuario) -> str:
+    def sair_sala(self, usuario, ip_port) -> str:
         with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-        if usersactive[f'{usuario.__str__()} : {usuario.port()}'] == '':
+        if usersactive[f'{usuario.__str__()} : {ip_port}'] == '':
             return "<SISTEMA>: Você não está em nenhuma sala."
 
-        nome_sala = usersactive[f'{usuario.__str__()} : {usuario.port()}']
-        if platform.system() == 'Windows':
-            cliente.disconnect_room(f'{get_local_ip_windows()}:{usuario.port()}')
+        nome_sala = usersactive[f'{usuario.__str__()} : {ip_port}']
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        rooms[nome_sala][2].remove(usuario.__str__())
+        if len(rooms[nome_sala][2]) != 0:
+            membro = rooms[nome_sala][2][0]
+            for user in usersactive:
+                if membro == user.split()[0]:
+                    membro_ip_port = user.split()[2]
+                    cliente.disconnect(membro_ip_port)
+                    break
         else:
-            cliente.disconnect_room(f'{get_local_ip_linux()}:{usuario.port()}')
-        usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
+            rooms.remove(nome_sala)
+        usersactive[f'{usuario.__str__()} : {ip_port}'] = ''
+        with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
-        if len(str(peersdb.peers)) > 5:
-            ppe = str(peersdb.peers)
-            ppe = ppe[2:19]
-            cliente.auxi_disconnect_room(ppe.split()[0])
-            del self.usuarios_sala[usuario]
         return f"<SISTEMA>: Você saiu da sala {nome_sala}."
 
 
     # Retorna uma lista com os nomes de todas as salas existentes
     def listar_salas(self) -> list[str]:
-        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            room_port = []
-            for room in rooms:
-                room_port.append(f'{room}:{rooms[room][0]}')
-            return room_port
-        else:
-            return []
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        return list(rooms.keys())
     
-    def deletar_sala(self, nome: str, solicitante: str) -> str:
-        if nome not in self.salas:
+    def deletar_sala(self, nome: str, solicitante: str, ip_port: str) -> str:
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        if nome not in rooms:
             return "<SISTEMA>: Sala não existe."
-        sala = self.salas[nome]
-        if sala.criador != solicitante:
+        if rooms[nome][1] != solicitante:
             return "<SISTEMA>: Apenas o criador pode deletar a sala."
-        for membro in sala.membros:
-            if membro in self.usuarios_sala:
-                del self.usuarios_sala[membro]
-        del self.salas[nome]
+        
+        #Kickar todo mundo da sala antes de deletar
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        for membro in rooms[nome][2]:
+            for user in usersactive:
+                if membro == user.split()[0]:
+                    membro_ip_port = user.split()[2]
+                    cliente.disconnect_room(membro_ip_port)
+                    usersactive[user] = ''
+                    break
+        usersactive[f'{solicitante} : {ip_port}'] = ''
+        with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+        del rooms[nome]
+        with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
         return f"<SISTEMA>: Sala '{nome}' foi deletada com sucesso."
     
-    def adicionar_peer_na_sala(self, criador: str, peer_addr: str) -> str:
-        if criador not in self.usuarios_sala:
+    def adicionar_peer_na_sala(self, criador: str, peer_addr: str, criador_ip_port: str, nome_peer: str) -> str:
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        if usersactive[f'{criador} : {criador_ip_port}'] == '':
             return "<SISTEMA>: Você precisa estar em uma sala para adicionar membros."
+        else:
+            sala = usersactive[f'{criador} : {criador_ip_port}']
 
-        nome_sala = self.usuarios_sala[criador]
-        sala = self.salas[nome_sala]
-
-        if peer_addr not in sala.membros:
-            sala.membros.append(peer_addr)
-            
-            return f"<SISTEMA>: Peer {peer_addr} adicionado à sala '{nome_sala}'.\n----------------------------------------------------------------------\n"
+        if nome_peer not in rooms[sala][2]:
+            cliente.connect(socket_to_tuple(peer_addr), criador_ip_port)
+            rooms[sala][2].append(nome_peer)
+            with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
+            return f"<SISTEMA>: Peer {nome_peer} adicionado à sala '{sala}'.\n----------------------------------------------------------------------\n"
         else:
             return "<SISTEMA>: Peer já está na sala."
     
-    def entrar_sala(self, sala: str, senha: str, solicitante: str, porta: int):
-        if os.path.exists(f'TRACKER/salasinfo/salasdb.json'):
-            with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-            if sala in rooms:
-                senha_armazenada = rooms[sala][1]
-                senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-                porta_sala = rooms[sala][0]
-                if senha_hash == senha_armazenada:
-                    if platform.system() == 'Windows':
-                        cliente.connect(socket_to_tuple(f'{get_local_ip_windows()}:{porta_sala}'), obter_hostname(porta))
-                        #ENVIAR UMA MENSAGEM INFORNMANDO QUE ESSA ENTROu
-                    else:
-                        cliente.connect(socket_to_tuple(f'{get_local_ip_linux()}:{porta_sala}'), obter_hostname(porta))
-                    with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-                    usersactive[f'{solicitante} : {porta}'] = sala
-                    with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
-                else:
-                    print("Senha incorreta!")
+    def entrar_sala(self, sala: str, senha: str, solicitante: str, ip_port: str):
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        if sala in rooms:
+            senha_armazenada = rooms[sala][0]
+            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+            if senha_hash == senha_armazenada:
+                membro = rooms[sala][2][0]
+                for user in usersactive:
+                    if user.split()[0] == membro:
+                        membro_ip_port = user.split()[2]
+                cliente.connect(socket_to_tuple(membro_ip_port), ip_port)
+                rooms[sala][2].append(solicitante)
+                #ENVIAR UMA MENSAGEM INFORNMANDO QUE ESSA ENTROU
+                usersactive[f'{solicitante} : {ip_port}'] = sala
+                with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
+                with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
             else:
-                print("Esta sala não existe")
+                print("Senha incorreta!")
         else:
-            print("Não existem salas disponíveis para entrar")
+            print("Esta sala não existe")
 
-# Comando para expulsar um usuário da sala, se quem executar for o criador
-def expulsar_usuario(e: str, solicitante: str):
-    partes = e.split()
-    if len(partes) < 3:
-        print("<SISTEMA>: Uso correto: /kick_peer <usuario> <sala>")
-        return
+    # Comando para expulsar um usuário da sala, se quem executar for o criador
+    def expulsar_usuario(self, ip_port: str, solicitante: str, solicitante_ip_port: str, nome: str):
 
-    usuario_expulso = partes[1]
-    nome_sala = partes[2]
-
-    sala = salasdb.salas.get(nome_sala)
-    if not sala:
-        print("<SISTEMA>: Sala não encontrada.")
-        return
-
-    resultado = sala.expulsar(solicitante, usuario_expulso)
-    print(resultado)
+        with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        sala = usersactive[f'{solicitante} : {solicitante_ip_port}']
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+        if solicitante != rooms[sala][1]:
+            return "<SISTEMA>: Você precisa ser o criador para expulsar."
+        cliente.disconnect_room(ip_port)
+        rooms[sala][2].remove(nome)
+        with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
+        print(f"<SISTEMA>: Usuário {nome} foi removido da sala {sala}.")
 
 
 # Banco de dados de salas

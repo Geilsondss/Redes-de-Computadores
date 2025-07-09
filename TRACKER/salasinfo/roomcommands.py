@@ -3,10 +3,10 @@ from TRACKER.salasinfo.salasdb import salasdb
 from client import cliente
 import json
 
-def comando_add_in_room(usuario, endereco_peer: str):
+def comando_add_in_room(usuario, endereco_peer: str, ip_port):
     try:
         # Conectar ao peer
-        cliente.connect(socket_to_tuple(endereco_peer), obter_hostname(usuario.port()))
+        cliente.connect(socket_to_tuple(endereco_peer), ip_port)
 
         # Enviar mensagem com nome da sala
         nome_sala = salasdb.usuarios_sala.get(str(usuario), '')

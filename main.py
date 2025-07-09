@@ -47,25 +47,24 @@ comandos = {
     '/active': lambda e: print(list(usersactive.keys())),
     '/create_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer nome e senha." if len(e.split()) < 3
-        else salasdb.criar_sala_com_servidor(
+        else salasdb.criar_sala(
             nome=e.split()[1],
             senha=e.split()[2],
-            criador=str(usuario),
-            porta_criador = usuario.port()),
+            criador=str(usuario)),
     ),
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
     '/disconnect': lambda e: cliente.disconnect(e.split()[1]),
-    '/add_in_room': lambda e: (comando_add_in_room(usuario, e.split()[1])),
-    '/kick_peer': lambda e: (cliente.disconnect_room(e.split()[1])),
+    '/add_in_room': lambda e: (salasdb.adicionar_peer_na_sala(usuario.__str__(), e.split()[1], f'{ip}:{PORTA}', e.split()[3])),
+    '/kick_peer': lambda e: (salasdb.expulsar_usuario(e.split()[1], usuario.__str__(), f'{ip}:{PORTA}', e.split()[3])),
     '/rooms': lambda e: print(salasdb.listar_salas()),
-    '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
+    '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), f'{ip}:{PORTA}')),
     '/leave_room': lambda e: (
-        print(salasdb.sair_sala(usuario))
+        print(salasdb.sair_sala(usuario, f'{ip}:{PORTA}'))
     ),
     '/delete_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer o nome da sala." if len(e.split()) < 2
-        else salasdb.deletar_sala(e.split()[1], str(usuario))
+        else salasdb.deletar_sala(e.split()[1], str(usuario), f'{ip}:{PORTA}')
     ),
 }
 
@@ -86,7 +85,7 @@ if __name__ == '__main__':
                     nome = e.split()[1]
                     for user in usersactive:
                         if nome == user.split()[0]:
-                            e = f'{command} {user.split()[2]} {ip}:{PORTA}'
+                            e = f'{command} {user.split()[2]} {ip}:{PORTA} {nome}'
                             break
                 elif command == '/exit':
                     del usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
