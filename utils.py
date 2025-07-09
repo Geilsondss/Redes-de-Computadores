@@ -1,4 +1,3 @@
-
 from socket import * # type: ignore
 import hashlib
 import platform
@@ -93,7 +92,6 @@ def mostrar_comandos():
     print("/peers                               → Exibe as conexões ativas com outros peers.")
     print("/active                              → Exibe os peers ativos.")
     print("/disconnect <PORTA>                  → Desconecta a conexão com um peer específico.")
-    print("/resignin                            → Redefine as credenciais do usuário.")
     print("/clear                               → Limpa a tela de apresentação")
     print("/menu                                → Exibe os comandos disponíveis")
     print("/create_room <nome> [senha]          → Cria uma sala com IP e senha.")
