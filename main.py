@@ -38,13 +38,12 @@ if f'{usuario.__str__()} : {usuario.port()}' not in usersactive:
 
 
 comandos = {
-    '/connect': lambda e: cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA)),
+    '/connect': lambda e: (cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA))),
     '/peers': lambda e: print(peersdb.peers),
     '/active': lambda e: print(list(usersactive.keys())),
-    '/resignin': lambda e: usuario.signin(),
     '/create_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer nome e senha." if len(e.split()) < 3
-        else clear(), salasdb.criar_sala_com_servidor(
+        else salasdb.criar_sala_com_servidor(
             nome=e.split()[1],
             senha=e.split()[2],
             criador=str(usuario),
@@ -53,13 +52,8 @@ comandos = {
     '/clear': lambda e: clear(),
     '/menu': lambda e: mostrar_comandos(),
     '/disconnect': lambda e: cliente.disconnect(e.split()[1]),
-    '/add_in_room': lambda e: (
-        comando_add_in_room(usuario, e.split()[1])
-        ),
-    '/kick_peer': lambda e: (
-        cliente.send_control_message(e.split()[1], "__KICK__"),
-        cliente.disconnect(e.split()[1])
-    ),
+    '/add_in_room': lambda e: (comando_add_in_room(usuario, e.split()[1])),
+    '/kick_peer': lambda e: (cliente.disconnect_room(e.split()[1])),
     '/rooms': lambda e: print(salasdb.listar_salas()),
     '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
     '/leave_room': lambda e: (
