@@ -15,12 +15,13 @@ class Server:
 
     """
 
-    def __init__(self, port, client: Client):
+    def __init__(self, port, client: Client, ip_port: str):
         """
         Inicializa o servidor com a porta e o cliente especificados.
 
         """
         self.__port = port
+        self.__ip_port = ip_port
         self.__server = socket(AF_INET, SOCK_STREAM)
         self.__server.bind(('0.0.0.0', port))
         self.__server.listen(100)
@@ -46,8 +47,8 @@ class Server:
 
                 # Processa os peers recebidos e adiciona à lista de peers
                 for p in data.split():
-                    if p != obter_hostname(self.__port) and p not in peersdb.peers:
-                        cliente.connect(socket_to_tuple(p), obter_hostname(self.__port))
+                    if p != self.__ip_port and p not in peersdb.peers:
+                        cliente.connect(socket_to_tuple(p), self.__ip_port)
                         peersdb.add(p)
 
                 # Cria uma nova thread para gerenciar a conexão com o peer

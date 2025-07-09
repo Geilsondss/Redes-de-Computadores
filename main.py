@@ -27,18 +27,22 @@ while True:
     print('')
 
 PORTA = usuario.port()
+if platform.system() == 'Windows':
+    ip = get_local_ip_windows()
+else:
+    ip = get_local_ip_linux()
 
-servidor = Server(PORTA, cliente)
+servidor = Server(PORTA, cliente, f'{ip}:{PORTA}')
 Thread(target=servidor.start, daemon=True).start()
 
 with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-if f'{usuario.__str__()} : {usuario.port()}' not in usersactive:
-    usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
+if f'{usuario.__str__()} : {ip}:{usuario.port()}' not in usersactive:
+    usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}'] = ''
     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
 
 comandos = {
-    '/connect': lambda e: (cliente.connect(socket_to_tuple(e.split()[1]), obter_hostname(PORTA))),
+    '/connect': lambda e: (cliente.connect(socket_to_tuple(e.split()[1]), e.split()[2])),
     '/peers': lambda e: print(peersdb.peers),
     '/active': lambda e: print(list(usersactive.keys())),
     '/create_room': lambda e: print(
@@ -57,8 +61,7 @@ comandos = {
     '/rooms': lambda e: print(salasdb.listar_salas()),
     '/enter_room': lambda e:(salasdb.entrar_sala(e.split()[1], e.split()[2], usuario.__str__(), usuario.port())),
     '/leave_room': lambda e: (
-        print(salasdb.sair_sala(str(usuario))),
-        usuario.set_room('')
+        print(salasdb.sair_sala(usuario))
     ),
     '/delete_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer o nome da sala." if len(e.split()) < 2
@@ -79,34 +82,28 @@ if __name__ == '__main__':
         if e[0] == '/':
             try:
                 command = e.split()[0]
-                if command == '/connect' or command == '/disconnect' or command == '/add_in_room':
-                    porta = e.split()[1]
-                    if platform.system() == 'Windows':
-                        e = f'{command} {get_local_ip_windows()}:{e.split()[1]}'
-                    else:
-                        e = f'{command} {get_local_ip_linux()}:{e.split()[1]}'
-                elif command == '/kick_peer':
-                    porta = e.split()[1]
-                    if platform.system() == 'Windows':
-                        e = f'{command} {get_local_ip_windows()}:{e.split()[1]} {e.split()[2]}'
-                    else:
-                        e = f'{command} {get_local_ip_linux()}:{e.split()[1]} {e.split()[2]}'
+                if command == '/connect' or command == '/disconnect' or command == '/add_in_room' or command == '/kick_peer':
+                    nome = e.split()[1]
+                    for user in usersactive:
+                        if nome == user.split()[0]:
+                            e = f'{command} {user.split()[2]} {ip}:{PORTA}'
+                            break
                 elif command == '/exit':
-                    del usersactive[f'{usuario.__str__()} : {usuario.port()}']
+                    del usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
                     break
                 comandos[command](e)
                 if command == '/add_in_room':
                     for user in usersactive:
-                        port = user.split()[2]
-                        if  porta == port:
-                            usersactive[user] = usersactive[f'{usuario.__str__()} : {usuario.port()}']
+                        name = user.split()[0]
+                        if nome == name:
+                            usersactive[user] = usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
                             break
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
                 elif command == '/kick_peer':
                     for user in usersactive:
-                        port = user.split()[2]
-                        if  porta == port:
+                        name = user.split()[0]
+                        if  nome == name:
                             usersactive[user] = ''
                             break
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
@@ -114,7 +111,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')
         else:
-            sala = usersactive[f'{usuario.__str__()} : {usuario.port()}']
+            sala = usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
             if sala != '':
                 msg = f'[{sala}] <{usuario}>: {e}'
                 msg_cripto = f'[{sala}] <{usuario}>: ' + criptografar(e)

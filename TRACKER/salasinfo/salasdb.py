@@ -71,7 +71,11 @@ class SalasDB:
         sala.membros.append(criador)
 
         # Inicia o servidor da sala em thread separada
-        servidor = Server(porta, cliente)
+        if platform.system() == 'Windows':
+            ip = get_local_ip_windows()
+        else:
+            ip = get_local_ip_linux()
+        servidor = Server(porta, cliente, f'{ip}:{porta}')
         Thread(target=servidor.start, daemon=True).start()
         if len(str(peersdb.peers)) > 5:
             ppe = str(peersdb.peers)
@@ -86,17 +90,15 @@ class SalasDB:
     # Remove o usuário da sala onde ele está
     def sair_sala(self, usuario) -> str:
         with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
-        if usersactive[f'{usuario._str_()} : {usuario.port()}'] == '':
+        if usersactive[f'{usuario.__str__()} : {usuario.port()}'] == '':
             return "<SISTEMA>: Você não está em nenhuma sala."
 
-        nome_sala = usersactive[f'{usuario._str_()} : {usuario.port()}']
-        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-        porta_sala = rooms[nome_sala][0]
+        nome_sala = usersactive[f'{usuario.__str__()} : {usuario.port()}']
         if platform.system() == 'Windows':
-            cliente.disconnect(f'{get_local_ip_windows()}:{porta_sala}')
+            cliente.disconnect_room(f'{get_local_ip_windows()}:{usuario.port()}')
         else:
-            cliente.disconnect(f'{get_local_ip_linux()}:{porta_sala}')
-        usersactive[f'{usuario._str_()} : {usuario.port()}'] = ''
+            cliente.disconnect_room(f'{get_local_ip_linux()}:{usuario.port()}')
+        usersactive[f'{usuario.__str__()} : {usuario.port()}'] = ''
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
 
         if len(str(peersdb.peers)) > 5:
