@@ -1,3 +1,4 @@
+
 from socket import * # type: ignore
 from threading import Thread
 from peersdb import peersdb
@@ -62,8 +63,9 @@ class Server:
         try:
             while True:
                 data = conn.recv(4096)
-                if not data or data.strip() == b'':
+                if not data or data.strip() == '':
                     break
+                # Exibe e registra a mensagem recebida
                 msg = data.decode('utf-8')
                 if msg == "__DISCONNECT__":
                     ppe = str(peersdb.peers)
@@ -71,13 +73,12 @@ class Server:
                     cliente.disconnect(ppe.split()[0])
                     break
                 elif msg == "__KICK__":
-                    nome_sala = msg.split("::")[1]
+                    print('----------------------------------------------------------------------')
+                    print(f"<SISTEMA>: Você foi removido da sala pelo criador.")
+                    print('----------------------------------------------------------------------')
                     ppe = str(peersdb.peers)
                     ppe = ppe[2:19]
                     cliente.auxi_disconnect_room(ppe.split()[0])
-                    print('----------------------------------------------------------------------')
-                    print(f"<SISTEMA>: Você foi removido da sala '{nome_sala}' pelo criador.")
-                    print('----------------------------------------------------------------------')
                     break
 
                 elif msg.startswith("__ADDED_TO_ROOM__::"):
