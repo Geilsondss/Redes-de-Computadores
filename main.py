@@ -107,6 +107,9 @@ if __name__ == '__main__':
                     nome = e.split()[1]
                     for user in usersactive:
                         if nome == user.split()[0]:
+                            if command == '/connect' or command == '/add_in_room':
+                                if usersactive[user] != '':
+                                    raise Exception('Este peer está indisponível no momento.')
                             e = f'{command} {user.split()[2]} {ip}:{PORTA} {nome}'
                             break
                 elif command == '/exit':
