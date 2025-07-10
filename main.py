@@ -82,11 +82,11 @@ if __name__ == '__main__':
         if e == '':
             continue
 
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+
         if e[0] == '/':
             try:
                 command = e.split()[0]
-
-                with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
                 if usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}'] == '':
                     if command not in comandos_livres:
                         raise Exception('Não é possível executar este comando.')
@@ -127,8 +127,11 @@ if __name__ == '__main__':
                         if  nome == user.split()[0]:
                             usersactive[user] = ''
                             break
+                    if command == '/disconnect':
+                        usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}'] = ''
                     with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
                 elif command == '/connect':
+                    usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}'] = e.split()[1]
                     for user in usersactive:
                         if  nome == user.split()[0]:
                             usersactive[user] = usuario.__str__()
@@ -139,7 +142,7 @@ if __name__ == '__main__':
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')
         else:
             sala = usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
-            if sala != '':
+            if sala != '' and sala in rooms:
                 msg = f'[{sala}] <{usuario}>: {e}'
                 msg_cripto = f'[{sala}] <{usuario}>: ' + criptografar(e)
             else:
