@@ -115,6 +115,7 @@ def mostrar_comandos_sala():
     print("\n<SISTEMA>: Comandos disponíveis:")
     print("-" * 70)
     print("/peers                               → Exibe as conexões ativas com outros peers.")
+    print("/members                             → Exibe os peers ques estão na sala.")
     print("/active                              → Exibe os peers ativos.")
     print("/clear                               → Limpa a tela de apresentação")
     print("/menu                                → Exibe os comandos disponíveis")
