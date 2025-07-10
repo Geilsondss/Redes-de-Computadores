@@ -79,12 +79,12 @@ if __name__ == '__main__':
     while True:
         e = input()
         with open('TRACKER/userinfo/usersactive.json', 'r') as file: usersactive = json.load(file)
+        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
+
         if e == '':
             continue
 
-        with open('TRACKER/salasinfo/salasdb.json', 'r') as file: rooms = json.load(file)
-
-        if e[0] == '/':
+        elif e[0] == '/':
             try:
                 command = e.split()[0]
                 if usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}'] == '':
@@ -143,6 +143,7 @@ if __name__ == '__main__':
 
             except Exception as e:
                 print(f'<SISTEMA>: Erro ao executar comando: {e}')
+
         else:
             sala = usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']
             if sala != '' and sala in rooms:
@@ -153,4 +154,5 @@ if __name__ == '__main__':
                 msg_cripto = (f'<{usuario}>: ' + criptografar(e))
             cliente.send_msg(msg)
             logger.log(msg_cripto)
+            e  = ''
             

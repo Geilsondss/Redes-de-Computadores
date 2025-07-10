@@ -4,7 +4,6 @@ from threading import Thread
 from peersdb import peersdb
 from client import *
 from utils import *
-from TRACKER.logs.logger import logger
 
 class Server:
     """
@@ -66,7 +65,7 @@ class Server:
                 data = conn.recv(4096)
                 if not data or data.strip() == '':
                     break
-                # Exibe e registra a mensagem recebida
+                # Exibe a mensagem recebida
                 msg = data.decode('utf-8')
                 if msg == "__DISCONNECT__":
                     ppe = str(peersdb.peers)
@@ -90,7 +89,6 @@ class Server:
 
                 else:
                     print(f'{msg}')
-                    logger.log(msg)
         except Exception as e:
             print('')
         finally:
