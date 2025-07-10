@@ -49,7 +49,7 @@ comandos = {
     '/connect': lambda e: (cliente.connect(socket_to_tuple(e.split()[1]), e.split()[2])),
     '/peers': lambda e: print(peersdb.peers),
     '/members': lambda e: print(rooms[usersactive[f'{usuario.__str__()} : {ip}:{usuario.port()}']][2]),
-    '/active': lambda e: print(list(usersactive.keys())),
+    '/active': lambda e: print(peers_active(list(usersactive.keys()))),
     '/create_room': lambda e: print(
         "<SISTEMA>: É necessário fornecer nome e senha." if len(e.split()) < 3
         else salasdb.criar_sala(

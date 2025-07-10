@@ -85,6 +85,12 @@ def criptografar(msg: str) -> str:
     hash_object.update(msg.encode('utf-8'))
     return hash_object.hexdigest()
 
+def peers_active(peers_ip_port: list):
+    peers_active = []
+    for peer in peers_ip_port:
+        peers_active.append(peer.split()[0])
+    return peers_active
+
 def mostrar_comandos_livres():
     print("\n<SISTEMA>: Comandos disponíveis:")
     print("-" * 70)
