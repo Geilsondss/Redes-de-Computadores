@@ -78,7 +78,7 @@ class SalasDB:
                     cliente.disconnect(membro_ip_port)
                     break
         else:
-            rooms.remove(nome_sala)
+            del rooms[nome_sala]
         usersactive[f'{usuario.__str__()} : {ip_port}'] = ''
         with open(f'TRACKER/salasinfo/salasdb.json', 'w') as file: json.dump(rooms, file)
         with open('TRACKER/userinfo/usersactive.json', 'w') as file: json.dump(usersactive, file)
